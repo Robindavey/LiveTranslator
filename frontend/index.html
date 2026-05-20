@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LiveTranslator</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>LiveTranslator</h1>
+      <p>Live speech translation from your browser, accessible from any device.</p>
+    </header>
+    <section class="controls">
+      <div class="language-selectors">
+        <label>
+          Input language
+          <select id="inputLanguage"></select>
+        </label>
+        <label>
+          Output language
+          <select id="outputLanguage"></select>
+        </label>
+      </div>
+      <div class="direction-row">
+        <button id="toggleDirectionBtn">Toggle Direction</button>
+        <span class="direction-label" id="directionLabel">User 1 → User 2</span>
+      </div>
+      <button id="connectBtn">Connect</button>
+      <button id="startBtn" disabled>Start Microphone</button>
+      <button id="stopBtn" disabled>Stop Microphone</button>
+      <div class="status" id="status">Disconnected</div>
+      <div class="progress-wrapper">
+        <label>Translation progress</label>
+        <progress id="translationProgress" value="0" max="100"></progress>
+      </div>
+    </section>
+    <section class="output">
+      <div class="panel">
+        <h2>Live Events</h2>
+        <ul id="events"></ul>
+      </div>
+      <div class="panel">
+        <h2>Final Transcripts</h2>
+        <ul id="transcripts"></ul>
+      </div>
+    </section>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
