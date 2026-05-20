@@ -21,6 +21,7 @@ class SileroVAD:
                 model="silero_vad",
                 force_reload=False,
                 verbose=False,
+                trust_repo=True,
             )
             self.model = model.to(self.device)
             self.get_speech_timestamps = utils[0]

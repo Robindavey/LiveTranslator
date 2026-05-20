@@ -6,6 +6,31 @@ PID_FILE="$ROOT/.live_translator.pid"
 LOG_FILE="$ROOT/server.log"
 PYTHON="${PYTHON:-python}"
 
+sudo apt install -y build-essential libportaudio2 portaudio19-dev libsndfile1
+
+function resolve_venv_dir() {
+  if [ -z "${VENV_DIR:-}" ]; then
+    if [ -n "${WSL_INTEROP:-}" ] || grep -qi "microsoft" /proc/version 2>/dev/null; then
+      echo "Detected WSL environment. Trying /env for virtualenv..."
+      if [ -d "/env" ] || mkdir -p "/env" 2>/dev/null; then
+        if [ -w "/env" ]; then
+          echo "Using /env for virtualenv."
+          VENV_DIR="/env"
+        fi
+      fi
+      if [ -z "${VENV_DIR:-}" ]; then
+        echo "Warning: /env is not writable; falling back to $ROOT/.venv"
+        VENV_DIR="$ROOT/.venv"
+      fi
+    else
+      echo "Non-WSL environment detected. Using local virtualenv at $ROOT/.venv"
+      VENV_DIR="$ROOT/.venv"
+    fi
+  else
+    echo "Using custom virtualenv directory: $VENV_DIR"
+  fi
+}
+
 function usage() {
   cat <<EOF
 Usage: $0 {build|start|stop|restart|status|update|checkout}
@@ -23,7 +48,7 @@ EOF
 }
 
 function uninstall() {
-  VENV_DIR="${VENV_DIR:-$ROOT/.venv}"
+  resolve_venv_dir
 
   if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
     echo "Stopping running backend..."
@@ -64,25 +89,54 @@ function uninstall() {
 
 function build() {
   echo "Installing dependencies..."
-  VENV_DIR="${VENV_DIR:-$ROOT/.venv}"
-  if [ ! -d "$VENV_DIR" ]; then
+  resolve_venv_dir
+  echo "Virtualenv directory: $VENV_DIR"
+  VENV_PYTHON="$VENV_DIR/bin/python"
+  if [ ! -d "$VENV_DIR" ] || [ ! -x "$VENV_PYTHON" ]; then
     echo "Creating virtualenv at $VENV_DIR..."
     python3 -m venv "$VENV_DIR"
+    VENV_PYTHON="$VENV_DIR/bin/python"
+    echo "Virtualenv created."
+  else
+    echo "Virtualenv already exists."
   fi
-  VENV_PYTHON="$VENV_DIR/bin/python"
+
+  if ! "$VENV_PYTHON" -m pip --version >/dev/null 2>&1; then
+    echo "pip missing in virtualenv; upgrading virtualenv to install pip..."
+    python3 -m venv --upgrade "$VENV_DIR"
+    VENV_PYTHON="$VENV_DIR/bin/python"
+    echo "Virtualenv upgrade attempted."
+  fi
+
+  if ! "$VENV_PYTHON" -m pip --version >/dev/null 2>&1; then
+    echo "pip still unavailable; bootstrapping pip with ensurepip..."
+    "$VENV_PYTHON" -m ensurepip --upgrade >/dev/null 2>&1 || true
+    echo "ensurepip attempted."
+  fi
+
+  if ! "$VENV_PYTHON" -m pip --version >/dev/null 2>&1; then
+    echo "Error: pip could not be installed in the virtualenv." >&2
+    exit 1
+  fi
+
   PYTHON="$VENV_PYTHON"
   echo "Using Python: $PYTHON"
+  echo "Upgrading pip..."
   "$PYTHON" -m pip install --upgrade pip
+  echo "pip upgrade complete."
   # Install core requirements first, treat whispercpp as optional because it
   # may not have wheels for all platforms.
   if grep -q '^whispercpp' "$ROOT/requirements.txt" 2>/dev/null; then
     CORE_REQS="$ROOT/.requirements_core.txt"
+    echo "Preparing core requirements without whispercpp..."
     grep -v '^whispercpp' "$ROOT/requirements.txt" > "$CORE_REQS"
+    echo "Installing core Python requirements..."
     "$PYTHON" -m pip install -r "$CORE_REQS"
     echo "Attempting optional install of whispercpp (may fail on some platforms)..."
     "$PYTHON" -m pip install whispercpp || echo "Optional whispercpp install failed; continuing without it."
     rm -f "$CORE_REQS"
   else
+    echo "Installing requirements from requirements.txt..."
     "$PYTHON" -m pip install -r "$ROOT/requirements.txt"
   fi
   echo "Build complete."
@@ -95,6 +149,24 @@ function start() {
   fi
 
   echo "Starting LiveTranslator backend..."
+  resolve_venv_dir
+
+  # Prefer virtualenv python if available, else prefer system python3, then python
+  if [ -x "$VENV_DIR/bin/python" ]; then
+    PYTHON="$VENV_DIR/bin/python"
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON="$(command -v python3)"
+  elif command -v python >/dev/null 2>&1; then
+    PYTHON="$(command -v python)"
+  else
+    echo "Error: no suitable Python interpreter found (tried venv, python3, python)." >&2
+    exit 1
+  fi
+
+  echo "Using Python for runtime: $PYTHON"
+  echo "PATH=$PATH" >> "$LOG_FILE" 2>&1 || true
+  echo "Which python: $(command -v "$PYTHON" 2>/dev/null || echo $PYTHON)" >> "$LOG_FILE" 2>&1 || true
+
   nohup "$PYTHON" -m backend.server > "$LOG_FILE" 2>&1 &
   echo $! > "$PID_FILE"
   sleep 1

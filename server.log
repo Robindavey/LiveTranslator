@@ -1,0 +1,58 @@
+Failed to load Silero VAD: No module named 'torchaudio'
+Traceback (most recent call last):
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/backend/vad/silero_vad.py", line 19, in __init__
+    model, utils = torch.hub.load(
+                   ^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 669, in load
+    model = _load_local(repo_or_dir, model, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 699, in _load_local
+    hub_module = _import_module(MODULE_HUBCONF, hubconf_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 118, in _import_module
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/hubconf.py", line 6, in <module>
+    from silero_vad.utils_vad import (init_jit_model,
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/__init__.py", line 7, in <module>
+    from silero_vad.model import load_silero_vad
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/model.py", line 1, in <module>
+    from .utils_vad import init_jit_model, OnnxWrapper
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/utils_vad.py", line 2, in <module>
+    import torchaudio
+ModuleNotFoundError: No module named 'torchaudio'
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/backend/server.py", line 79, in <module>
+    app = create_app()
+          ^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/backend/server.py", line 23, in create_app
+    app.state.pipeline = SpeechPipeline(
+                         ^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/backend/pipeline.py", line 21, in __init__
+    self.vad = SileroVAD(
+               ^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/backend/vad/silero_vad.py", line 19, in __init__
+    model, utils = torch.hub.load(
+                   ^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 669, in load
+    model = _load_local(repo_or_dir, model, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 699, in _load_local
+    hub_module = _import_module(MODULE_HUBCONF, hubconf_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/robin/OneDrive/Programming/Big Projects/LiveTranslator/.venv/lib/python3.12/site-packages/torch/hub.py", line 118, in _import_module
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/hubconf.py", line 6, in <module>
+    from silero_vad.utils_vad import (init_jit_model,
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/__init__.py", line 7, in <module>
+    from silero_vad.model import load_silero_vad
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/model.py", line 1, in <module>
+    from .utils_vad import init_jit_model, OnnxWrapper
+  File "/home/robin/.cache/torch/hub/snakers4_silero-vad_master/src/silero_vad/utils_vad.py", line 2, in <module>
+    import torchaudio
+ModuleNotFoundError: No module named 'torchaudio'
