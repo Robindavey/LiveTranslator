@@ -8,7 +8,7 @@ PYTHON="${PYTHON:-python}"
 
 function usage() {
   cat <<EOF
-Usage: $0 {build|start|stop|restart|status|update}
+Usage: $0 {build|start|stop|restart|status|update|checkout}
 
 Commands:
   build     Install Python dependencies
@@ -17,6 +17,7 @@ Commands:
   restart   Restart the backend
   status    Show running status
   update    Pull repository updates and rebuild dependencies
+  checkout  Checkout a git branch on the Linux server, then pull and rebuild
 EOF
 }
 
@@ -73,6 +74,31 @@ function status() {
   fi
 }
 
+function checkout() {
+  local branch="${2:-main}"
+
+  if [ ! -d "$ROOT/.git" ]; then
+    echo "Error: $ROOT is not a git repository."
+    exit 1
+  fi
+
+  echo "Checking out branch '$branch'..."
+  git -C "$ROOT" fetch --all --prune
+
+  if git -C "$ROOT" rev-parse --verify "$branch" >/dev/null 2>&1; then
+    git -C "$ROOT" checkout "$branch"
+  else
+    git -C "$ROOT" checkout -B "$branch" "origin/$branch" || git -C "$ROOT" checkout "$branch"
+  fi
+
+  git -C "$ROOT" pull --ff-only
+  echo "Branch '$branch' is now checked out."
+
+  if [ -f "$ROOT/requirements.txt" ]; then
+    build
+  fi
+}
+
 function update() {
   echo "Updating repository and dependencies..."
   if [ -d "$ROOT/.git" ]; then
@@ -84,6 +110,14 @@ function update() {
 COMMAND="${1:-help}"
 case "$COMMAND" in
   build) build ;;
+  start) start ;;
+  stop) stop ;;
+  restart) stop && start ;;
+  status) status ;;
+  update) update ;;
+  checkout) checkout "$@" ;;
+  help|*) usage ;;
+esac  build) build ;;
   start) start ;;
   stop) stop ;;
   restart) stop && start ;;
